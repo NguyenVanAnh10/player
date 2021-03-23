@@ -19,7 +19,7 @@ app.use(express.static("public"));
 // );
 app.get("/", function (req, res) {
   // res.set("Content-Type", "text/html");
-  res.sendFile(path.join(__dirname + "/index.html"));
+  res.sendFile(path.join(__dirname + "/frontend.html"));
 });
 
 app.listen(port, () => {
