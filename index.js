@@ -1,7 +1,5 @@
 const express = require("express");
 const path = require("path");
-// const { createProxyMiddleware } = require("http-proxy-middleware");
-const fetch = require("node-fetch");
 
 const app = express();
 
