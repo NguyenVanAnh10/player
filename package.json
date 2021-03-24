@@ -1,10 +1,7 @@
 {
   "dependencies": {
     "cors": "^2.8.5",
-    "express": "^4.17.1",
-    "http-proxy-middleware": "^1.0.6",
-    "node-fetch": "^2.6.1",
-    "pug": "^3.0.2"
+    "express": "^4.17.1"
   },
   "name": "player",
   "version": "1.0.0",
