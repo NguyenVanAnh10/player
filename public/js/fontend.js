@@ -11,19 +11,35 @@ const player = document.querySelector("audio");
 
 const controller = {
   sources: [],
+  data: [],
   selectedSong: "", // selected song
   paused: true,
   random: false,
+  loading: false,
   replay: 0, // 0: none, 1: replay a song, 2: replay all songs
-  duration: player.duration || 0,
+  duration: 0,
+  handleLoadedData: function (e) {
+    this.duration = player.duration;
+    this.loading = false;
+    renderListSongs();
+    renderPlayButton();
+  },
   handleInit: async function () {
     this.reload(getSong());
+  },
+  handlePlay: function () {
+    console.log("play");
   },
   handleEnded: function () {
     if (!this.replay) {
       try {
         player.pause();
-        document.getElementById("play-btn").classList.remove("playing");
+        this.paused = true;
+        renderListSongs();
+        renderPlayButton();
+        // pause animation rotate disc
+        const song = getSong(this.selectedSong);
+        renderPlayedSong(song);
       } catch (error) {
         console.log(error);
       } finally {
@@ -36,15 +52,21 @@ const controller = {
     }
     this.handleNextButton();
   },
+  handleLoadStartEvent: function () {
+    this.loading = true;
+    renderListSongs();
+    renderPlayButton();
+  },
   handlePlayButton: async function () {
     const song = getSong(this.selectedSong);
+
     if (this.paused) {
       try {
         await player.play();
-        document.getElementById("play-btn").classList.add("playing");
         this.paused = player.paused;
         renderPlayedSong(song);
         renderListSongs();
+        renderPlayButton();
       } catch (e) {
         console.log(e);
       } finally {
@@ -54,9 +76,9 @@ const controller = {
     try {
       await player.pause();
       this.paused = player.paused;
-      document.getElementById("play-btn").classList.remove("playing");
       renderPlayedSong(song);
       renderListSongs();
+      renderPlayButton();
     } catch (e) {
       console.log(e);
     }
@@ -101,10 +123,9 @@ const controller = {
   handleSeeking: function (e) {
     const curTime = (e.clientX / e.view.innerWidth) * this.duration;
     player.currentTime = curTime;
-    progressed.setAttribute(
-      "style",
-      `width: ${(curTime * 100) / player.duration}%`
-    );
+    document
+      .getElementById("progress-bar")
+      .setAttribute("style", `width: ${(curTime * 100) / player.duration}%`);
   },
   handleReplay: function () {
     this.replay = this.replay > 1 ? 0 : (this.replay += 1);
@@ -112,8 +133,12 @@ const controller = {
     if (!this.replay) {
       replay.classList.remove("btn-danger", "replay-all");
       replay.classList.add("replay-one");
+      document.getElementById("replay").classList.remove("btn-outline-danger");
+      document.getElementById("replay").classList.add("btn-outline-secondary");
       return;
     }
+    document.getElementById("replay").classList.add("btn-outline-danger");
+    document.getElementById("replay").classList.remove("btn-outline-secondary");
     if (this.replay === 1) {
       replay.classList.add("replay-one", "btn-danger");
       replay.classList.remove("replay-all");
@@ -124,18 +149,38 @@ const controller = {
   },
   handleRandom: function () {
     this.random = !this.random;
-    this.random
-      ? document.getElementById("random").classList.add("btn-danger")
-      : document.getElementById("random").classList.remove("btn-danger");
+    if (this.random) {
+      document.getElementById("random").classList.add("btn-outline-danger");
+      document
+        .getElementById("random")
+        .classList.remove("btn-outline-secondary");
+      document.getElementById("random").classList.add("btn-danger");
+      return;
+    }
+    document.getElementById("random").classList.remove("btn-outline-danger");
+    document.getElementById("random").classList.add("btn-outline-secondary");
+    document.getElementById("random").classList.remove("btn-danger");
+  },
+  handleTimeupdate: function () {
+    const progressed = document.getElementById("progress-bar");
+    progressed.setAttribute("aria-valuenow", player.currentTime);
+    document.getElementById("remain-time").innerText = toMMSS(
+      (controller.duration - player.currentTime) * 1000
+    );
+    progressed.setAttribute(
+      "style",
+      `width: ${(player.currentTime * 100) / player.duration}%`
+    );
+  },
+  handleSearch: function (e) {
+    this.sources = this.data.filter((s) =>
+      s.slugifyKeywork.includes(
+        slugify(e.target.value, { lower: true, locale: "vi" })
+      )
+    );
+    renderListSongs();
   },
 };
-fetch(config.localAPI)
-  .then((r) => r.json())
-  .then((r) => console.log("test api", r));
-
-fetch(config.aip)
-  .then((r) => r.json())
-  .then((r) => console.log("test api", r));
 
 fetch("./data.json")
   .then((response) => response.json())
@@ -143,34 +188,67 @@ fetch("./data.json")
     controller.sources = data.items.map((i) => ({
       id: i.encodeId,
       title: i.title,
+      slugifyKeywork: slugify(i.title + " " + i.artistsNames, {
+        lower: true,
+        locale: "vi",
+      }),
       srcImg: i.thumbnailM,
       src: `http://api.mp3.zing.vn/api/streaming/audio/${i.encodeId}/180`,
       singer: i.artistsNames,
     }));
+    controller.data = controller.sources;
     controller.handleInit();
 
     renderPlayedSong(getSong());
     renderListSongs();
   });
 
+let lastScroll = 0;
+const singerImg = document.getElementById("singer-img");
+const listContainer = document.querySelector(".list-container");
+
+listContainer.addEventListener(
+  "scroll",
+  debounce((e) => {
+    const changedHeight =
+      e.srcElement.scrollTop < 200 ? 200 - e.srcElement.scrollTop : 0;
+    singerImg.style.height = `${changedHeight}px`;
+    listContainer.style.height = `calc(100vh - ${240 + changedHeight}px)`;
+    if (e.srcElement.scrollTop < lastScroll) {
+      //up
+      singerImg.style.opacity = 1;
+    } else {
+      // down
+      singerImg.style.opacity = 0.5;
+    }
+    lastScroll = e.srcElement.scrollTop;
+  })
+);
+
+function debounce(f, timeout = 0) {
+  let id = null;
+  return (e) => {
+    id && clearTimeout(id);
+    id = setTimeout(function () {
+      f(e);
+    }, timeout);
+  };
+}
+
+player.addEventListener("play", controller.handlePlay.bind(controller));
+player.addEventListener(
+  "loadstart",
+  controller.handleLoadStartEvent.bind(controller)
+);
 player.addEventListener("ended", controller.handleEnded.bind(controller));
 
-player.addEventListener("loadeddata", (e) => {
-  controller.duration = player.duration;
-});
+player.addEventListener(
+  "loadeddata",
+  controller.handleLoadedData.bind(controller)
+);
+
 // progressed
-const progressed = document.getElementById("progress-bar");
-const remainTime = document.getElementById("remain-time");
-player.addEventListener("timeupdate", (e) => {
-  progressed.setAttribute("aria-valuenow", player.currentTime);
-  remainTime.innerText = toMMSS(
-    (controller.duration - player.currentTime) * 1000
-  );
-  progressed.setAttribute(
-    "style",
-    `width: ${(player.currentTime * 100) / player.duration}%`
-  );
-});
+player.addEventListener("timeupdate", controller.handleTimeupdate);
 
 const progressBar = document.getElementById("progress");
 progressBar.addEventListener(
@@ -202,53 +280,75 @@ randomButton.addEventListener(
   controller.handleRandom.bind(controller)
 );
 
-const playButton = document.getElementById("play-btn");
-playButton.addEventListener(
-  "click",
-  controller.handlePlayButton.bind(controller)
-);
+document
+  .getElementById("search")
+  .addEventListener("input", controller.handleSearch.bind(controller));
+document
+  .getElementById("play-btn")
+  .addEventListener("click", controller.handlePlayButton.bind(controller));
 
-const nextButton = document.getElementById("next");
-nextButton.addEventListener(
-  "click",
-  controller.handleNextButton.bind(controller)
-);
-const previousButton = document.getElementById("previous");
-previousButton.addEventListener(
-  "click",
-  controller.handlePreviousButton.bind(controller)
-);
+document
+  .getElementById("next")
+  .addEventListener("click", controller.handleNextButton.bind(controller));
 
+document
+  .getElementById("previous")
+  .addEventListener("click", controller.handlePreviousButton.bind(controller));
+
+// render Play Button
+function renderPlayButton() {
+  document
+    .querySelector("#play-btn")
+    .classList.remove("loading-btn", "play-btn", "pause-btn");
+  if (controller.loading) {
+    document.querySelector("#play-btn").classList.add("loading-btn");
+    return;
+  }
+  controller.paused
+    ? document.querySelector("#play-btn").classList.add("play-btn")
+    : document.querySelector("#play-btn").classList.add("pause-btn");
+}
 // render List song
-function renderListSongs(songs = controller.sources) {
-  const playingOpacity = (
-    c
-  ) => `<div id="opacity-${c.id}" class="opacity"></div>
-  <img id="playing-${c.id}" class="playing" src="./images/icon-playing.gif" />
-  <img id="play-${c.id}" class="play" src="./images/play-circle-regular.svg" />`;
+function renderListSongs(
+  songs = controller.sources,
+  playedSongId = controller.selectedSong
+) {
+  const playingOpacity = (c) => `<div id="opacity-${
+    c.id
+  }" class="opacity"></div>
+  ${
+    controller.loading
+      ? `<img id="loading-${c.id}" class="loading loading-img" src="./images/spinner.gif" />`
+      : !controller.paused
+      ? `<img id="playing-${c.id}" class="playing" src="./images/icon-playing.gif" />`
+      : `<img id="play-${c.id}" class="play" src="./images/play-circle-regular.svg" />`
+  }`;
 
-  document.getElementById("list-song").innerHTML = songs.reduce((s, c) => {
-    return (s += `<div class="d-flex align-items-center py-2 song-item">
+  document.getElementById("list-song").innerHTML = songs.reduce(
+    (s, c, i, a) => {
+      return (s += `<div class="d-flex align-items-center py-2 song-item ${
+        i === a.length - 1 ? "border-bottom-0" : ""
+      }">
     <div id=${`song-item-${c.id}`} class="img-container">
       <figure class="song-img">
         <img src=${c.srcImg || defaultImgSong} alt="" />
       </figure>
-      ${
-        c.id === controller.selectedSong && !controller.paused
-          ? playingOpacity(c)
-          : ""
-      }
+      ${c.id === controller.selectedSong ? playingOpacity(c) : ""}
     </div>
     <div class="meta ms-3">
       <h5  class="title mb-0">${c.title}</h5 >
       <span>${c.singer}</span>
     </div>
   </div>`);
-  }, "");
+    },
+    ""
+  );
   songs.map((s) => {
     const element = document.getElementById(`song-item-${s.id}`);
     element.addEventListener("click", () => {
-      controller.reload(s);
+      if (playedSongId !== s.id) return controller.reload(s);
+      controller.handlePlayButton();
+      renderListSongs();
     });
   });
 }

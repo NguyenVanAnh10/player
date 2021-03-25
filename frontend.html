@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/png" href="./favicon.ico" />
+    <link rel="icon" type="image/png" href="./images/favicon.ico" />
     <link rel="stylesheet" href="./css/index.css" />
     <title>Player</title>
     <script src="./js/bootstrap.bundle.min.js"></script>
@@ -12,13 +12,30 @@
   <body>
     <div class="px-3 py-4 container-full">
       <div class="header">
-        <h1 class="text-center">Music Player</h1>
+        <div class="scroll-down-header hide d-none">
+          <h1 class="text-center">Music Player</h1>
+        </div>
+        <h1 class="text-center scroll-up-header mb-3">Music Player</h1>
         <div class="unrotate">
           <img id="singer-img" class="singer-img rotate" />
         </div>
       </div>
       <!-- audio player -->
       <audio hidden preload="auto" controls></audio>
+      <div
+        class="list-title d-flex justify-content-between mb-3 align-items-end"
+      >
+        <h2 class="mb-0">List Songs</h2>
+        <input
+          id="search"
+          type="text"
+          placeholder="Search"
+          class="search w-50"
+        />
+      </div>
+      <div class="list-container">
+        <div id="list-song" class="list-song"></div>
+      </div>
       <!-- controller play -->
       <div class="fixed-bottom">
         <div
@@ -39,11 +56,13 @@
             </div>
           </div>
           <div class="play-control-right text-right">
-            <div class="control-items d-flex align-items-center">
+            <div
+              class="control-items d-flex justify-content-end flex-wrap align-items-center"
+            >
               <button
                 id="previous"
                 type="button"
-                class="me-1 btn btn-outline-secondary"
+                class="me-1 mt-1 btn btn-outline-secondary"
               >
                 <img
                   class="item"
@@ -51,24 +70,27 @@
                   alt=""
                 />
               </button>
-              <div id="play-btn">
-                <button
-                  type="button"
-                  class="me-1 btn btn-outline-danger play-btn"
+              <button
+                id="play-btn"
+                type="button"
+                class="me-1 mt-1 btn btn-outline-danger"
+              >
+                <div
+                  class="item d-flex justify-content-center align-items-center"
                 >
-                  <img class="item" src="./images/play-circle-regular.svg" />
-                </button>
-                <button
-                  type="button"
-                  class="me-1 btn btn-outline-danger pause-btn"
-                >
-                  <img class="item" src="./images/pause-circle-regular.svg" />
-                </button>
-              </div>
+                  <img
+                    id="loading"
+                    class="loading-img"
+                    src="./images/spinner.gif"
+                  />
+                  <img id="play" src="./images/play-circle-regular.svg" />
+                  <img id="pause" src="./images/pause-circle-regular.svg" />
+                </div>
+              </button>
               <button
                 id="next"
                 type="button"
-                class="me-1 btn btn-outline-secondary"
+                class="me-1 mt-1 btn btn-outline-secondary"
               >
                 <img
                   class="item"
@@ -79,7 +101,7 @@
               <button
                 id="replay"
                 type="button"
-                class="me-1 btn btn-outline-secondary replay-one"
+                class="me-1 mt-1 btn btn-outline-secondary replay-one"
               >
                 <img
                   id="all"
@@ -97,7 +119,7 @@
               <button
                 id="random"
                 type="button"
-                class="me-1 btn btn-outline-secondary"
+                class="me-1 mt-1 btn btn-outline-secondary"
               >
                 <img class="item" src="./images/random-solid.svg" alt="" />
               </button>
@@ -117,12 +139,8 @@
           </div>
         </div>
       </div>
-      <i class="icon ic-play-circle-outline"></i>
-      <div class="list-container">
-        <h2 class="mb-3">List Songs</h2>
-        <div id="list-song" class="list-song"></div>
-      </div>
     </div>
     <script src="./js/fontend.js"></script>
+    <script src="./js/slugify.min.js"></script>
   </body>
 </html>
