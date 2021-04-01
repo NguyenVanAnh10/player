@@ -8,6 +8,22 @@ const defaultImgSong = "./images/default_song.jpg";
 
 const tooltipBar = document.getElementById("tooltip");
 const player = document.querySelector("audio");
+const header = document.querySelector(".header");
+const listTitle = document.querySelector(".list-title ");
+
+// calculate controller's height when init load
+const controllPlayer = document.querySelector(".controller");
+document.addEventListener("DOMContentLoaded", function (event) {
+  document.querySelector(".list-container").style.height = `calc(100vh - ${
+    controllPlayer.clientHeight + header.clientHeight + listTitle.clientHeight
+  }px - 4.5rem)`;
+});
+
+window.addEventListener("resize", function () {
+  document.querySelector(".list-container").style.height = `calc(100vh - ${
+    controllPlayer.clientHeight + header.clientHeight + listTitle.clientHeight
+  }px - 4.5rem)`;
+});
 
 const controller = {
   sources: [],
@@ -172,14 +188,6 @@ const controller = {
       `width: ${(player.currentTime * 100) / player.duration}%`
     );
   },
-  handleSearch: function (e) {
-    this.sources = this.data.filter((s) =>
-      s.slugifyKeywork.includes(
-        slugify(e.target.value, { lower: true, locale: "vi" })
-      )
-    );
-    renderListSongs();
-  },
 };
 
 fetch("./data.json")
@@ -211,7 +219,7 @@ listContainer.addEventListener(
   "scroll",
   debounce((e) => {
     const changedHeight =
-      e.srcElement.scrollTop < 200 ? 200 - e.srcElement.scrollTop : 0;
+      e.srcElement.scrollTop < 50 ? 200 - e.srcElement.scrollTop : 0;
     singerImg.style.height = `${changedHeight}px`;
     listContainer.style.height = `calc(100vh - ${240 + changedHeight}px)`;
     if (e.srcElement.scrollTop < lastScroll) {
@@ -219,7 +227,7 @@ listContainer.addEventListener(
       singerImg.style.opacity = 1;
     } else {
       // down
-      singerImg.style.opacity = 0.5;
+      singerImg.style.opacity = 0.8;
     }
     lastScroll = e.srcElement.scrollTop;
   })
@@ -227,7 +235,7 @@ listContainer.addEventListener(
 
 function debounce(f, timeout = 0) {
   let id = null;
-  return (e) => {
+  return function (e) {
     id && clearTimeout(id);
     id = setTimeout(function () {
       f(e);
@@ -280,9 +288,30 @@ randomButton.addEventListener(
   controller.handleRandom.bind(controller)
 );
 
-document
-  .getElementById("search")
-  .addEventListener("input", controller.handleSearch.bind(controller));
+const clearInputButton = document.getElementById("clear");
+const searchInput = document.getElementById("search");
+searchInput.addEventListener(
+  "input",
+  debounce(function (e) {
+    if (e.target.value) {
+      clearInputButton.style.width = "15px";
+    } else {
+      clearInputButton.style.width = 0;
+    }
+    controller.sources = controller.data.filter((s) =>
+      s.slugifyKeywork.includes(
+        slugify(e.target.value, { lower: true, locale: "vi" })
+      )
+    );
+    renderListSongs();
+  }, 300)
+);
+clearInputButton.addEventListener("click", function () {
+  clearInputButton.style.width = 0;
+  searchInput.value = "";
+  controller.sources = controller.data;
+  renderListSongs();
+});
 document
   .getElementById("play-btn")
   .addEventListener("click", controller.handlePlayButton.bind(controller));

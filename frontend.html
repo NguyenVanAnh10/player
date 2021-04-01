@@ -22,16 +22,21 @@
       </div>
       <!-- audio player -->
       <audio hidden preload="auto" controls></audio>
-      <div
-        class="list-title d-flex justify-content-between mb-3 align-items-end"
-      >
-        <h2 class="mb-0">List Songs</h2>
-        <input
-          id="search"
-          type="text"
-          placeholder="Search"
-          class="search w-50"
-        />
+      <div class="list-title mb-3 row">
+        <div class="col-6"><h2 class="mb-0">List Songs</h2></div>
+        <div class="col-6 d-flex">
+          <input
+            id="search"
+            type="text"
+            placeholder="Search"
+            class="search w-100"
+          />
+          <img
+            class="ms-auto"
+            id="clear"
+            src="./images/times-circle-regular.svg"
+          />
+        </div>
       </div>
       <div class="list-container">
         <div id="list-song" class="list-song"></div>

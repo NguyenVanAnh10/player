@@ -1,7 +1,11 @@
 @import "./bootstrap.min.css";
 
+body {
+  overflow: hidden;
+  background-color: #764fb1;
+}
+
 .container-full {
-  height: calc(100vh - 64px);
   user-select: none;
   background-color: #764fb1;
   color: white;
@@ -29,6 +33,14 @@
 }
 .search:focus {
   outline: none;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: white;
+  transition: background-color 5000s;
 }
 .list-title {
   border-top: 1px solid rgba(255, 255, 255, 0.15);
@@ -59,7 +71,7 @@
   border-radius: 100%;
   display: block;
   margin: 0 auto;
-  transition: opacity 0.3s ease;
+  transition: opacity, height 0.3s ease;
 }
 .note {
   width: 15px;
@@ -163,6 +175,7 @@
 }
 #play-btn img {
   display: none;
+  width: 100%;
 }
 .btn {
   line-height: 1;
@@ -187,7 +200,7 @@
   font-size: 0.65rem;
   background-color: #000000cc;
   position: fixed;
-  right: 0;
+  left: 0;
   bottom: 0.2rem;
 }
 .play-control-right {
@@ -216,4 +229,8 @@ body::-webkit-scrollbar-thumb {
   background-color: blue; /* color of the scroll thumb */
   border-radius: 20px; /* roundness of the scroll thumb */
   border: 3px solid orange; /* creates padding around scroll thumb */
+}
+#clear {
+  width: 0;
+  cursor: pointer;
 }
