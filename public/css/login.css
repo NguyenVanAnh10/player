@@ -1,0 +1,43 @@
+#customBtn .text-login {
+  font-size: 17px;
+  font-weight: 600;
+}
+#customBtn .customGPlusSignIn {
+  display: inline-block;
+}
+#customBtn .label {
+  font-weight: 600;
+}
+#customBtn .icon {
+  background: url("/identity/sign-in/g-normal.png") transparent 5px 50%
+    no-repeat;
+  display: inline-block;
+  vertical-align: middle;
+  width: 36px;
+}
+#customBtn {
+  cursor: pointer;
+  text-align: center;
+  margin: 0 auto;
+  padding: 5px 20px;
+  background-color: rgba(249, 224, 224, 0.2);
+  border-radius: 25px;
+  width: max-content;
+}
+span.buttonText {
+  display: inline-block;
+  vertical-align: middle;
+  padding-left: 42px;
+  padding-right: 42px;
+  font-size: 14px;
+  font-weight: bold;
+  /* Use the Roboto font that is loaded in the <head> */
+  font-family: "Roboto", sans-serif;
+}
+.modal-header {
+}
+.modal-title {
+  font-size: 30px;
+}
+.modal-dialog {
+}

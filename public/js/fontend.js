@@ -1,3 +1,12 @@
+import {
+  getSong,
+  getNextSong,
+  getRandomSong,
+  getPrevSong,
+  getRandomNNumbersExcludeM,
+  toMMSS,
+} from "./utils.js";
+
 const config = {
   aip:
     "https://zingmp3.vn/api/v2/playlist/getDetail?id=ZF9ACU6A&ctime=1616476358&version=1.1.4&sig=559da472b451be406ed1c23f3ec905d5ebee04040d2b1daa4a5e7b542b8fa5f0d87347833d36a6457157c4e1429f7e4f51b04054b2ab9abd3fd50dffaeddc5aa9&apiKey=kI44ARvPwaqL7v0KuDSM0rGORtdY1nnw",
@@ -10,14 +19,9 @@ const tooltipBar = document.getElementById("tooltip");
 const player = document.querySelector("audio");
 const header = document.querySelector(".header");
 const listTitle = document.querySelector(".list-title ");
-
-// calculate controller's height when init load
 const controllPlayer = document.querySelector(".controller");
-document.addEventListener("DOMContentLoaded", function (event) {
-  document.querySelector(".list-container").style.height = `calc(100vh - ${
-    controllPlayer.clientHeight + header.clientHeight + listTitle.clientHeight
-  }px - 4.5rem)`;
-});
+const singerImg = document.getElementById("singer-img");
+const listContainer = document.querySelector(".list-container");
 
 window.addEventListener("resize", function () {
   document.querySelector(".list-container").style.height = `calc(100vh - ${
@@ -189,6 +193,27 @@ const controller = {
     );
   },
 };
+// login
+const loginModal = new bootstrap.Modal(document.getElementById("loginModal"), {
+  keyboard: false,
+  backdrop: "static",
+});
+
+// avatar
+const avatar = document.getElementById("avatar");
+
+// calculate controller's height when init load
+document.addEventListener("DOMContentLoaded", function (event) {
+  document.querySelector(".list-container").style.height = `calc(100vh - ${
+    controllPlayer.clientHeight + header.clientHeight + listTitle.clientHeight
+  }px - 4.5rem)`;
+  const user = JSON.parse(localStorage.getItem("user")) || {};
+  if (user.id) {
+    user.imgURL && avatar.setAttribute("src", user.imgURL);
+    return;
+  }
+  loginModal.show();
+});
 
 fetch("./data.json")
   .then((response) => response.json())
@@ -212,28 +237,28 @@ fetch("./data.json")
   });
 
 let lastScroll = 0;
-const singerImg = document.getElementById("singer-img");
-const listContainer = document.querySelector(".list-container");
 
 listContainer.addEventListener(
   "scroll",
   debounce((e) => {
     const changedHeight =
-      e.srcElement.scrollTop < 50 ? 200 - e.srcElement.scrollTop : 0;
+      e.srcElement.scrollTop < 200 ? 200 - e.srcElement.scrollTop : 0;
+
     singerImg.style.height = `${changedHeight}px`;
-    listContainer.style.height = `calc(100vh - ${240 + changedHeight}px)`;
-    if (e.srcElement.scrollTop < lastScroll) {
-      //up
-      singerImg.style.opacity = 1;
-    } else {
-      // down
-      singerImg.style.opacity = 0.8;
-    }
+
+    // TODO: transition to hide or unhide singer image
+    // singerImg.style.transition = "opacity, height 0.3s ease";
+
+    listContainer.style.height = `calc(100vh - ${
+      controllPlayer.clientHeight + header.clientHeight + listTitle.clientHeight
+    }px - 4.5rem)`;
+    singerImg.style.opacity =
+      e.srcElement.scrollTop < 170 ? (200 - e.srcElement.scrollTop) / 200 : 0;
     lastScroll = e.srcElement.scrollTop;
-  })
+  }, 0)
 );
 
-function debounce(f, timeout = 0) {
+function debounce(f, timeout = 300) {
   let id = null;
   return function (e) {
     id && clearTimeout(id);
@@ -408,38 +433,4 @@ function renderPlayedSong(song) {
     .setAttribute("src", song.srcImg || defaultImgSong);
 }
 
-function getSong(idSong, list = controller.sources) {
-  return list.filter((l) => l.id === idSong)[0] || list[0];
-}
-
-function getRandomSong(currentSongId, list = controller.sources) {
-  const index = list.findIndex((l) => l.id === currentSongId);
-  if (index < 0) return list[getRandomNNumbersExcludeM(list.length - 1, 0)];
-  return list[getRandomNNumbersExcludeM(list.length - 1, index)];
-}
-
-function getNextSong(idSong, list = controller.sources) {
-  const index = list.findIndex((l) => l.id === idSong);
-  if (index < 0 || index === list.length - 1) return list[0] || {};
-  return list[index + 1];
-}
-
-function getPrevSong(idSong, list = controller.sources) {
-  const index = list.findIndex((l) => l.id === idSong);
-  if (index < 0) return list[0] || {};
-  if (index === 0) return list[list.length - 1] || {};
-  return list[index - 1];
-}
-
-function toMMSS(time) {
-  let minutes = Math.floor(time / (1000 * 60));
-  let seconds = Math.floor((time - minutes * (1000 * 60)) / 1000);
-  if (minutes < 10) minutes = "0" + minutes;
-  if (seconds < 10) seconds = "0" + seconds;
-  return `${minutes} : ${seconds}`;
-}
-function getRandomNNumbersExcludeM(n, m) {
-  const x = Math.floor(Math.random() * n);
-  if (x !== m || n < 2) return x;
-  return getRandomNNumbersExcludeM(n, m);
-}
+export { controller, loginModal };

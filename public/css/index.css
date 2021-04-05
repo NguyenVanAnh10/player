@@ -1,4 +1,5 @@
 @import "./bootstrap.min.css";
+@import "./login.css";
 
 body {
   overflow: hidden;
@@ -71,7 +72,7 @@ input:-webkit-autofill:active {
   border-radius: 100%;
   display: block;
   margin: 0 auto;
-  transition: opacity, height 0.3s ease;
+  transition: opacity 0.1s ease;
 }
 .note {
   width: 15px;
@@ -233,4 +234,18 @@ body::-webkit-scrollbar-thumb {
 #clear {
   width: 0;
   cursor: pointer;
+}
+
+#loginModal .modal-content {
+  background-color: #764fb1;
+  color: white;
+}
+.modal-header {
+  border-bottom: none;
+}
+
+.avatar {
+  width: 50px;
+  border-radius: 100%;
+  border: 2px solid gray;
 }
